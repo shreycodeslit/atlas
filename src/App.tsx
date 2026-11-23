@@ -190,7 +190,7 @@ function Review({ atlas }: { atlas: Atlas }) {
         return (
           <article key={i.id} className={`rev g-${i.group}`}>
             <h2>{i.name}</h2>
-            <p className="nums"><b>{hrs(s.minutes)}</b> · {s.sessions} sessions · {s.streak ? `${s.streak}-day streak` : `last ${s.daysSince ?? '–'} days ago`}</p>
+            <p className="nums"><b>{hrs(s.minutes)}</b> · {s.sessions} sessions · {s.streak ? `${s.streak}-day streak` : s.daysSince != null ? `last session ${s.daysSince} days ago` : 'no sessions yet'}</p>
             <svg className="bars" viewBox="0 0 120 32" role="img" aria-label={`Minutes per week, last 12 weeks: ${w.join(', ')}`}>{w.map((m, k) => <rect key={k} x={k * 10 + 1} y={32 - (m / max) * 30} width="8" height={Math.max(1, (m / max) * 30)} rx="1.5" />)}</svg>
             <p className="small">Minutes per week, last 12 weeks</p>
             {ai?.[i.id] ? <><p>{ai[i.id].progress}</p><p className="next"><b>Next month:</b> {ai[i.id].suggestion}</p></> : <p className="small">Goal: {i.goal}</p>}

@@ -1,7 +1,7 @@
 // POST /api/links { interests, logs, resources, known: ["a|b", ...] } → suggested links between interests
 // Retrieve, then judge: embeddings (or TF-IDF) shortlist note pairs across interests; the model keeps the useful ones and says why.
 import { z } from 'zod';
-import { generateJson, json, rateLimited } from './_lib/ai';
+import { generateJson, json, rateLimited, respondLater } from './_lib/ai';
 import { candidates, cosine, cosineSparse, tfidf, type Candidate, type Doc } from '../src/lib/similar';
 
 declare const process: { env: Record<string, string | undefined> };
@@ -33,7 +33,12 @@ async function embed(texts: string[]): Promise<number[][]> {
 
 const Judged = z.object({ links: z.array(z.object({ a: z.string(), b: z.string(), useful: z.boolean(), reason: z.string().max(300), technique: z.string().max(40).nullable().catch(null) })).max(12) });
 
-export default async function handler(req: Request): Promise<Response> {
+// Answers start streaming at once, so a slow free-tier model can't hit the Edge 25-second start limit
+export default function handler(req: Request): Response {
+  return respondLater(() => handle(req));
+}
+
+async function handle(req: Request): Promise<Response> {
   if (req.method !== 'POST') return json({ error: 'Use POST.' }, 405);
   if (rateLimited(req, 6, 10 * 60_000)) return json({ error: 'Link finding is limited to a few runs every 10 minutes.' }, 429);
   const p = Body.safeParse(await req.json().catch(() => null));

@@ -72,7 +72,7 @@ function MapView({ atlas, edit, sel, setSel, say }: { atlas: Atlas; edit: (f: (a
         interests: atlas.interests.map((i) => ({ id: i.id, name: i.name, goal: i.goal })), logs: atlas.logs.map((l) => ({ interestId: l.interestId, note: l.note })),
         resources: atlas.resources.map((r) => ({ interestId: r.interestId, title: r.title, note: r.note })), known }) });
       const d = await res.json();
-      if (!res.ok) throw new Error(d.error);
+      if (!res.ok || d.error) throw new Error(d.error);
       const fresh: Link[] = d.links.map((l: { a: string; b: string; reason: string; technique: string | null; score: number | null }) => ({ id: uid(), a: l.a, b: l.b, reason: l.reason, technique: l.technique, score: l.score, status: 'suggested', source: d.judge ?? 'local' }));
       edit((a) => ({ ...a, links: [...a.links.filter((l) => !(l.status === 'suggested' && fresh.some((f) => [f.a, f.b].sort().join() === [l.a, l.b].sort().join()))), ...fresh] }));
       setMeta(`Compared your notes with ${d.method === 'gemini-embeddings' ? 'Gemini embeddings' : 'TF-IDF word vectors'}, shortlisted ${d.considered} pairs${d.judge ? `, and ${d.judge === 'gemini' ? 'Gemini' : 'Groq'} kept ${fresh.length}` : `; no judge available, showing the ${fresh.length} strongest`}.`);
@@ -178,7 +178,7 @@ function Review({ atlas }: { atlas: Atlas }) {
   async function write() {
     setBusy(true); setErr(null);
     const items = atlas.interests.map((i) => { const s = stats(atlas, i.id); return { id: i.id, name: i.name, goal: i.goal, sessions: s.sessions, minutes: s.minutes, streak: s.streak, daysSince: s.daysSince, notes: atlas.logs.filter((l) => l.interestId === i.id).slice(-12).map((l) => l.note) }; });
-    try { const r = await fetch('/api/review', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ items }) }); const d = await r.json(); if (!r.ok) throw new Error(d.error); setAi(Object.fromEntries(d.reviews.map((x: { id: string; progress: string; suggestion: string }) => [x.id, x]))); }
+    try { const r = await fetch('/api/review', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ items }) }); const d = await r.json(); if (!r.ok || d.error) throw new Error(d.error); setAi(Object.fromEntries(d.reviews.map((x: { id: string; progress: string; suggestion: string }) => [x.id, x]))); }
     catch (e) { setErr(e instanceof Error && e.message ? e.message : 'Couldn’t write the review now.'); }
     finally { setBusy(false); }
   }

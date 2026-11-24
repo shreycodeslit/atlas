@@ -2,7 +2,9 @@
 
 **One map for all your interests.** For people who juggle guitar, chess, Spanish, running and investing at once: every interest is a card on a canvas with its goal, practice log and streak. AI finds real links between them, and a planner balances your week.
 
-Live: _add the Vercel link here_
+Live: **[atlas-smoky-mu.vercel.app](https://atlas-smoky-mu.vercel.app)**
+
+[![The interest map, with a link Atlas found between Chess and Spanish](docs/screenshot.jpg)](https://atlas-smoky-mu.vercel.app)
 
 ## What it does
 
